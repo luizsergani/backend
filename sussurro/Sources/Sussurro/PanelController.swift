@@ -39,20 +39,18 @@ final class PanelController: NSObject, NSWindowDelegate {
         )
 
         let panel = KeyablePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 440),
-            styleMask: [.titled, .fullSizeContentView, .nonactivatingPanel],
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 460),
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
         panel.isMovableByWindowBackground = true
         panel.level = .floating
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.standardWindowButton(.closeButton)?.isHidden = true
-        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        panel.standardWindowButton(.zoomButton)?.isHidden = true
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
         panel.contentView = NSHostingView(rootView: view)
         panel.delegate = self
         positionNearCursor(panel)
@@ -74,9 +72,9 @@ final class PanelController: NSObject, NSWindowDelegate {
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main
         guard let visible = screen?.visibleFrame else { return }
-        var origin = NSPoint(x: mouse.x - 180, y: mouse.y - 440)
-        origin.x = min(max(origin.x, visible.minX + 8), visible.maxX - 360 - 8)
-        origin.y = min(max(origin.y, visible.minY + 8), visible.maxY - 440 - 8)
+        var origin = NSPoint(x: mouse.x - 190, y: mouse.y - 460)
+        origin.x = min(max(origin.x, visible.minX + 8), visible.maxX - 380 - 8)
+        origin.y = min(max(origin.y, visible.minY + 8), visible.maxY - 460 - 8)
         panel.setFrameOrigin(origin)
     }
 
