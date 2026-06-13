@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let recorder = Recorder()
     private let transcriber = Transcriber()
     private var hotKey: HotKey?
+    private var f5HotKey: HotKey?
     private var panelHotKey: HotKey?
     private let clipboard = ClipboardManager()
     private lazy var panelController = PanelController(clipboard: clipboard)
@@ -32,7 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
             button.action = #selector(statusClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "Sussurro — ⌥⌘R grava · ⌥⌘V abre clipboard & emojis"
+            button.toolTip = "Sussurro — F5 grava · ⌥⌘V clipboard & emojis"
         }
 
         hotKey = HotKey(keyCode: UInt32(kVK_ANSI_R), modifiers: UInt32(cmdKey | optionKey), id: 1) { [weak self] in
@@ -42,6 +43,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // ⌥⌘V abre o painel de Área de Transferência & Emojis
         panelHotKey = HotKey(keyCode: UInt32(kVK_ANSI_V), modifiers: UInt32(cmdKey | optionKey), id: 2) { [weak self] in
             self?.panelController.toggle()
+        }
+
+        // F5 → grava/transcreve (tecla única)
+        f5HotKey = HotKey(keyCode: UInt32(kVK_F5), modifiers: 0, id: 3) { [weak self] in
+            self?.toggle()
         }
 
         clipboard.start()
@@ -157,7 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
 
         let toggleTitle = state == .recording ? "Parar e transcrever" : "Iniciar gravação"
-        let toggleItem = NSMenuItem(title: "\(toggleTitle)  ⌥⌘R", action: #selector(toggle), keyEquivalent: "")
+        let toggleItem = NSMenuItem(title: "\(toggleTitle)  ·  F5", action: #selector(toggle), keyEquivalent: "")
         toggleItem.target = self
         toggleItem.isEnabled = state != .transcribing
         menu.addItem(toggleItem)
