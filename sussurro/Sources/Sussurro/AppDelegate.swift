@@ -29,10 +29,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
             button.action = #selector(statusClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "Sussurro — clique ou ⌥⌘D para gravar"
+            button.toolTip = "Sussurro — clique ou ⌥⌘R para gravar"
         }
 
-        hotKey = HotKey(keyCode: UInt32(kVK_ANSI_D), modifiers: UInt32(cmdKey | optionKey)) { [weak self] in
+        hotKey = HotKey(keyCode: UInt32(kVK_ANSI_R), modifiers: UInt32(cmdKey | optionKey)) { [weak self] in
             self?.toggle()
         }
 
@@ -71,7 +71,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         state = .recording
-        setIcon("record.circle.fill", tint: .systemRed)
+        setIcon("record.circle.fill", tint: .systemRed, title: "REC")
         NSSound(named: "Pop")?.play()
     }
 
@@ -82,7 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         state = .transcribing
-        setIcon("hourglass", tint: nil)
+        setIcon("hourglass", tint: .systemOrange, title: "…")
         NSSound(named: "Bottle")?.play()
 
         let lang = language
@@ -115,17 +115,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSSound(named: "Glass")?.play()
     }
 
-    private func setIcon(_ symbol: String, tint: NSColor?) {
+    private func setIcon(_ symbol: String, tint: NSColor?, title: String? = nil) {
         guard let button = statusItem.button else { return }
-        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Sussurro")
+        let base = NSImage(systemSymbolName: symbol, accessibilityDescription: "Sussurro")
+        if let tint, let base {
+            // Renderiza o símbolo numa cor sólida (não-template) para a cor
+            // REALMENTE aparecer na barra de menu (senão fica monocromático).
+            let config = NSImage.SymbolConfiguration(paletteColors: [tint])
+            let colored = base.withSymbolConfiguration(config)
+            colored?.isTemplate = false
+            button.image = colored
+        } else {
+            base?.isTemplate = true
+            button.image = base
+        }
         button.contentTintColor = tint
+        if let title {
+            button.title = " \(title)"
+            button.imagePosition = .imageLeading
+        } else {
+            button.title = ""
+            button.imagePosition = .imageOnly
+        }
     }
 
     private func buildMenu() -> NSMenu {
         let menu = NSMenu()
 
         let toggleTitle = state == .recording ? "Parar e transcrever" : "Iniciar gravação"
-        let toggleItem = NSMenuItem(title: "\(toggleTitle)  ⌥⌘D", action: #selector(toggle), keyEquivalent: "")
+        let toggleItem = NSMenuItem(title: "\(toggleTitle)  ⌥⌘R", action: #selector(toggle), keyEquivalent: "")
         toggleItem.target = self
         toggleItem.isEnabled = state != .transcribing
         menu.addItem(toggleItem)

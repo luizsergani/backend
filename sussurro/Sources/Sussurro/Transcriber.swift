@@ -66,6 +66,7 @@ struct Transcriber {
             return env
         }
         let candidates = [
+            "\(NSHomeDirectory())/.local/bin/whisper-cli",
             "/opt/homebrew/bin/whisper-cli",
             "/usr/local/bin/whisper-cli",
         ]
