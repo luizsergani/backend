@@ -9,6 +9,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let recorder = Recorder()
     private let transcriber = Transcriber()
     private var hotKey: HotKey?
+    private var panelHotKey: HotKey?
+    private let clipboard = ClipboardManager()
+    private lazy var panelController = PanelController(clipboard: clipboard)
     private var state: State = .idle
     private var lastText = ""
 
@@ -29,12 +32,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
             button.action = #selector(statusClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "Sussurro — clique ou ⌥⌘R para gravar"
+            button.toolTip = "Sussurro — ⌥⌘R grava · ⌥⌘V abre clipboard & emojis"
         }
 
-        hotKey = HotKey(keyCode: UInt32(kVK_ANSI_R), modifiers: UInt32(cmdKey | optionKey)) { [weak self] in
+        hotKey = HotKey(keyCode: UInt32(kVK_ANSI_R), modifiers: UInt32(cmdKey | optionKey), id: 1) { [weak self] in
             self?.toggle()
         }
+
+        // ⌥⌘V abre o painel de Área de Transferência & Emojis
+        panelHotKey = HotKey(keyCode: UInt32(kVK_ANSI_V), modifiers: UInt32(cmdKey | optionKey), id: 2) { [weak self] in
+            self?.panelController.toggle()
+        }
+
+        clipboard.start()
 
         AVCaptureDevice.requestAccess(for: .audio) { _ in }
 
@@ -53,6 +63,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             toggle()
         }
+    }
+
+    @objc private func openPanel() {
+        panelController.toggle()
     }
 
     @objc private func toggle() {
@@ -147,6 +161,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleItem.target = self
         toggleItem.isEnabled = state != .transcribing
         menu.addItem(toggleItem)
+
+        let panelItem = NSMenuItem(title: "Área de transferência & emojis  ⌥⌘V", action: #selector(openPanel), keyEquivalent: "")
+        panelItem.target = self
+        menu.addItem(panelItem)
 
         menu.addItem(.separator())
 
