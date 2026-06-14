@@ -10,7 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let transcriber = Transcriber()
     private var hotKey: HotKey?
     private var f5HotKey: HotKey?
-    private var panelHotKey: HotKey?
+    private var panelTap: EventTapHotKey?
     private let clipboard = ClipboardManager()
     private lazy var panelController = PanelController(clipboard: clipboard)
     private var state: State = .idle
@@ -33,15 +33,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
             button.action = #selector(statusClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "Sussurro — F5 grava · ⌥⌘V clipboard & emojis"
+            button.toolTip = "Sussurro — F5 grava voz · ⌥⌘V clipboard & emojis"
         }
 
+        // ⌥⌘R → grava/transcreve (reserva)
         hotKey = HotKey(keyCode: UInt32(kVK_ANSI_R), modifiers: UInt32(cmdKey | optionKey), id: 1) { [weak self] in
             self?.toggle()
         }
 
-        // ⌥⌘V abre o painel de Área de Transferência & Emojis
-        panelHotKey = HotKey(keyCode: UInt32(kVK_ANSI_V), modifiers: UInt32(cmdKey | optionKey), id: 2) { [weak self] in
+        // ⌥⌘V → painel de Área de Transferência & Emojis (via event tap: captura
+        // a tecla antes do app em foco, sempre disponível)
+        panelTap = EventTapHotKey(keyCode: CGKeyCode(kVK_ANSI_V), modifiers: [.maskCommand, .maskAlternate]) { [weak self] in
             self?.panelController.toggle()
         }
 
@@ -168,7 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleItem.isEnabled = state != .transcribing
         menu.addItem(toggleItem)
 
-        let panelItem = NSMenuItem(title: "Área de transferência & emojis  ⌥⌘V", action: #selector(openPanel), keyEquivalent: "")
+        let panelItem = NSMenuItem(title: "Área de transferência & emojis  ·  ⌥⌘V", action: #selector(openPanel), keyEquivalent: "")
         panelItem.target = self
         menu.addItem(panelItem)
 

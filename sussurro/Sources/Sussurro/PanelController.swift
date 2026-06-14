@@ -56,8 +56,12 @@ final class PanelController: NSObject, NSWindowDelegate {
         positionNearCursor(panel)
 
         self.panel = panel
+        // Apps de barra de menu (accessory) precisam de orderFrontRegardless para
+        // a janela aparecer; activate() moderno + ignoringOtherApps como reforço.
         NSApp.activate(ignoringOtherApps: true)
+        if #available(macOS 14.0, *) { NSApp.activate() }
         panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
 
         escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { // Esc
